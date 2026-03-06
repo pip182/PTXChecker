@@ -39,11 +39,13 @@ public static class LayoutBuilder
                 if (cut.DimensionMm > 0)
                 {
                     ripStart = ripEnd;             // Advance to strip starting at previous boundary
-                    ripEnd = cut.DimensionMm;      // This strip ends here
-                    crossStart = marginX;          // Reset cross position for new strip
+                    ripEnd = cut.DimensionMm;     // This strip ends here
+                    // Clamp to board so strip and yTop stay within bounds (avoids negative Y / clipped parts)
+                    if (ripEnd > board.WidthMm) ripEnd = board.WidthMm;
+                    crossStart = marginX;         // Reset cross position for new strip
                 }
             }
-            else if (cut.Function == 2) // Cross: DIMENSION = piece length (falling piece) along strip
+            else if (cut.Function >= 2 && cut.Function <= 9) // Cross (2) and recut phases (3–9) per spec §5
             {
                 if (cut.DimensionMm > 0 && ripEnd > ripStart)
                 {
@@ -52,10 +54,12 @@ public static class LayoutBuilder
                     if (cut.PartIndex > 0 && segW > 0 && segH > 0)
                     {
                         var part = doc.GetPart(cut.PartIndex);
+                        // PTX rip DIMENSION is typically from reference edge (bottom); convert to top-origin for display
+                        double yTop = board.WidthMm - ripEnd;
                         result.Add(new LayoutRectangle
                         {
                             XMm = crossStart,
-                            YMm = ripStart,
+                            YMm = yTop,
                             WidthMm = segW,
                             HeightMm = segH,
                             PartIndex = cut.PartIndex,

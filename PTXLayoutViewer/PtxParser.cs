@@ -89,7 +89,8 @@ public static class PtxParser
 
         if (cuts.Count == 0 && patterns.Count > 0)
         {
-            double stripHeight = doc.Parts.Max(p => p.HeightMm);
+            // Grain 2 = part rotated 90° on board: strip height = part Width, cross = part Height
+            double stripHeight = doc.Parts.Max(p => p.GrainDirection == 2 ? p.WidthMm : p.HeightMm);
             cuts.Add(new PtxCut
             {
                 JobIndex = jobIndex,
@@ -107,6 +108,7 @@ public static class PtxParser
             int sequence = 2;
             foreach (var part in doc.Parts.OrderBy(p => p.PartIndex))
             {
+                double crossMm = part.GrainDirection == 2 ? part.HeightMm : part.WidthMm;
                 cuts.Add(new PtxCut
                 {
                     JobIndex = jobIndex,
@@ -114,7 +116,7 @@ public static class PtxParser
                     CutIndex = cutIndex++,
                     Sequence = sequence++,
                     Function = 2,
-                    DimensionMm = part.WidthMm,
+                    DimensionMm = crossMm,
                     QtyRpt = 1,
                     PartIndex = part.PartIndex,
                     QtyParts = 1,
@@ -135,7 +137,7 @@ public static class PtxParser
         };
     }
 
-    // BOARDS: Job_ID, BRD_INDEX, Material_Code, ?, Length, Width, ...
+    // BOARDS per spec §3: Job_ID, BRD_INDEX, Material_Code, ?, Length, Width, ...
     private static bool TryParseBoard(string[] t, out PtxBoard board)
     {
         board = null!;
@@ -148,7 +150,7 @@ public static class PtxParser
         return true;
     }
 
-    // PARTS_REQ: Job_ID, Part_ID, Part_Seq/Name?, Material_ID?, Width, Height, ...
+    // PARTS_REQ: Job_ID, Part_ID, Part_Seq/Name?, Material_ID?, Width, Height, Qty?, ..., Grain? (index 10: 0=no grain, 1=along length, 2=along width)
     private static bool TryParsePart(string[] t, out PtxPart part)
     {
         part = null!;
@@ -159,6 +161,8 @@ public static class PtxParser
         if (!double.TryParse(t[6].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h)) return false;
         int qty = 0;
         if (t.Length > 7) int.TryParse(t[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out qty);
+        int grain = 0;
+        if (t.Length > 10) int.TryParse(t[10].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out grain);
         part = new PtxPart
         {
             JobIndex = job,
@@ -166,7 +170,8 @@ public static class PtxParser
             PartName = t.Length > 3 ? t[3].Trim().Trim('"') : "",
             WidthMm = w,
             HeightMm = h,
-            QtyReq = qty
+            QtyReq = qty,
+            GrainDirection = grain
         };
         return true;
     }
@@ -186,7 +191,7 @@ public static class PtxParser
         return true;
     }
 
-    // CUTS: ..., JOB, PTN, CUT_INDEX, SEQUENCE, FUNCTION, DIMENSION, QTY_RPT, PART_INDEX, QTY_PARTS, COMMENT
+    // CUTS per spec §4: JOB_INDEX, PTN_INDEX, CUT_INDEX, SEQUENCE, FUNCTION, DIMENSION, QTY_RPT, PART_INDEX, QTY_PARTS, COMMENT
     private static bool TryParseCut(string[] t, out PtxCut cut)
     {
         cut = null!;

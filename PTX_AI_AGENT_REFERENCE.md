@@ -76,6 +76,22 @@ CUTS.PART_INDEX → X + OFFCUTS.OFC_INDEX
 
 ---
 
+# 3.1 PARTS_REQ and grain direction
+
+PARTS_REQ fields typically include (order may vary by exporter): JOB_INDEX, PART_INDEX, Part name, Material/seq, Width, Height, Qty, …, **Grain** (often at field index 10).
+
+**Grain flag (placement/orientation):**
+
+| Value | Meaning |
+|-------|--------|
+| 0 | No grain — parts placed in same orientation as board |
+| 1 | Grain along board **length** — same orientation as board |
+| 2 | Grain along board **width** — square parts placed in **opposite** orientation (rotated 90° on board) |
+
+When **grain = 2**, the part’s length (grain direction) aligns with the board width axis; the optimizer places the part accordingly and CUTS reflect the physical cut. When reconstructing layout from CUTS, use CUTS dimensions as authoritative. When generating synthetic CUTS from PARTS_REQ only (e.g. no CUTS in file), use part Width/Height swapped for grain = 2 (strip height = part Width, cross dimension = part Height).
+
+---
+
 # 4. CUTS Record — Cutting Instructions
 
 The CUTS record defines **the physical cutting instructions executed by the saw**.
