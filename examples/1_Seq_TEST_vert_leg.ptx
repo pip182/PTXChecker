@@ -1,0 +1,21 @@
+HEADER,1.08,00614,0,1
+JOBS,1,1_Seq_TEST_vert_leg,1_Seq_TEST_vert_leg,06/03/2026,06/03/2026,vert_leg,1,,,0,0
+PARTS_REQ,1,1,Door Base Slab,1,708.0,454.0,1,0,0,1,1
+PARTS_REQ,1,2,Drawer Front Slab,1,158.8,454.0,1,0,0,1,1
+PARTS_REQ,1,3,Drawer Front Slab,1,158.8,454.0,1,0,0,1,1
+PARTS_REQ,1,4,Drawer Front Slab,1,301.6,454.0,1,0,0,1,1
+PARTS_REQ,1,5,Drawer Front Slab,1,301.6,454.0,1,0,0,1,1
+PARTS_UDI,1,1,_Dev91,Door Base Slab,1_Seq_TEST,WB00220B,WB00230B,,,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,,2636JGCRO3IF11,WB00220B,WB00230B,,,,,1,Sequence Test,Base 1 Door 1 Drawer,217.36,1,,,2,1,,3214
+PARTS_UDI,1,2,_Dev91,Drawer Front Slab,1_Seq_TEST,WB00280L,WB00290L,,,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,,2636JGCTSXUF21,WB00280L,WB00290L,,,,,1,Sequence Test,Base 1 Door 1 Drawer,217.36,1,,,0,1,,3214
+PARTS_UDI,1,3,_Dev91,Drawer Front Slab,1_Seq_TEST,WAZZP80L,WAZZP90L,,,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,,2636JGD3OVJF21,WAZZP80L,WAZZP90L,,,,,1,Sequence Test,Base 3 Drawer,217.35,1,,,0,1,,3214
+PARTS_UDI,1,4,_Dev91,Drawer Front Slab,1_Seq_TEST,WAZZPW0L,WAZZPX0L,,,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,,2636JGD6XURF21,WAZZPW0L,WAZZPX0L,,,,,1,Sequence Test,Base 3 Drawer,217.35,1,,,0,1,,3214
+PARTS_UDI,1,5,_Dev91,Drawer Front Slab,1_Seq_TEST,WAZZPE0L,WAZZPF0L,,,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,EB - Wood Tape - Alder - 1.5mm,,2636JGD5TD5F21,WAZZPE0L,WAZZPF0L,,,,,1,Sequence Test,Base 3 Drawer,217.35,1,,,0,1,,3214
+BOARDS,1,1,( 3_4 ) WT - Alder Select - AA-B MDF,1,2447.9,1228.7,2000,1,0.00,0,,,1
+MATERIALS,1,1,( 3_4 ) WT - Alder Select - AA-B MDF,,18.8,5,4.4,4.4,4.8,0.0,4.8,0.0,0.0,4.4,0.0,4,0,1,0,,1
+PATTERNS,1,1,1,0,1,1,4,,0,0
+CUTS,1,1,1,1,1,454.0,1,0,0,RIP
+CUTS,1,1,2,2,2,301.6,1,4,1,
+CUTS,1,1,3,3,2,301.6,1,5,1,
+CUTS,1,1,4,4,2,158.8,1,3,1,
+CUTS,1,1,5,5,2,708.0,1,1,1,
+CUTS,1,1,6,6,2,158.8,1,2,1,
