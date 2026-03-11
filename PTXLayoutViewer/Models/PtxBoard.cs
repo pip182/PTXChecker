@@ -1,13 +1,22 @@
 namespace PTXLayoutViewer.Models;
 
-/// <summary>Board stock definition from BOARDS record. Length/Width in mm.</summary>
+/// <summary>Board stock definition from BOARDS record.</summary>
 public sealed class PtxBoard
 {
     public int JobIndex { get; init; }
     public int BrdIndex { get; init; }
-    public string MaterialCode { get; init; } = "";
-    /// <summary>Board length (first dimension) in mm.</summary>
+    public string Code { get; init; } = "";
+    public int MatIndex { get; init; }
     public double LengthMm { get; init; }
-    /// <summary>Board width (second dimension) in mm.</summary>
     public double WidthMm { get; init; }
+    public int QtyStock { get; init; }
+    public int QtyUsed { get; init; }
+    public double Cost { get; init; }
+    public string Information { get; init; } = "";
+    public int Grain { get; init; }
+    public int Type { get; init; }
+    public int CostMethod { get; init; }
+
+    // Legacy UI compatibility.
+    public string MaterialCode => Code;
 }

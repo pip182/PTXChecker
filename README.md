@@ -8,11 +8,14 @@ A .NET WPF application that loads PTX (Pattern Exchange Format) files and render
 
 ## Build and run
 
+From the repo root (no `.csproj` there), specify the project:
+
 ```bash
-cd PTXChecker
 dotnet build PTXLayoutViewer/PTXLayoutViewer.csproj
 dotnet run --project PTXLayoutViewer/PTXLayoutViewer.csproj
 ```
+
+On Windows PowerShell you can use backslashes: `PTXLayoutViewer\PTXLayoutViewer.csproj`. Or `cd PTXLayoutViewer` then `dotnet run`.
 
 Or open `PTXChecker.sln` in Visual Studio and run **PTXLayoutViewer**.
 

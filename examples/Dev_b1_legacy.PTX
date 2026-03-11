@@ -1,0 +1,115 @@
+HEADER,1.08,00659,0,1
+JOBS,1,(03-11) _Dev Sequence_Kitchen_B1_LEGACY,(03-11) _Dev Sequence_Kitchen_B1_LEGACY,11/03/2026,11/03/2026,B1_LEGACY,1,,,0,0
+PARTS_REQ,1,1,Door Base Slab,1,603.3,379.4,1,0,0,1,1
+PARTS_REQ,1,2,Door Base Slab,1,603.3,379.4,1,0,0,1,1
+PARTS_REQ,1,3,Door Base Slab,1,562.0,377.8,1,0,0,1,1
+PARTS_REQ,1,4,Door Base Slab,1,562.0,452.4,1,0,0,1,1
+PARTS_REQ,1,5,Drawer Front Slab,1,158.8,377.8,1,0,0,1,1
+PARTS_REQ,1,6,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,7,Drawer Front Slab,1,198.4,377.8,1,0,0,1,1
+PARTS_REQ,1,8,Drawer Front Slab,1,200.0,377.8,1,0,0,1,1
+PARTS_REQ,1,9,Drawer Front Slab,1,198.4,377.8,1,0,0,1,1
+PARTS_REQ,1,10,Drawer Front Slab,1,158.8,377.8,1,0,0,1,1
+PARTS_REQ,1,11,Drawer Front Slab,1,158.8,762.0,1,0,0,1,1
+PARTS_REQ,1,12,Drawer Front Slab,1,200.0,452.4,1,0,0,1,1
+PARTS_REQ,1,13,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,14,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,15,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,16,Drawer Front Slab,1,158.8,909.6,1,0,0,1,1
+PARTS_REQ,1,17,Drawer Front Slab,1,198.4,454.0,1,0,0,1,1
+PARTS_REQ,1,18,Drawer Front Slab,1,198.4,454.0,1,0,0,1,1
+PARTS_REQ,1,19,Drawer Front Slab,1,158.8,454.0,1,0,0,1,1
+PARTS_REQ,1,20,Drawer Front Slab,1,200.0,454.0,1,0,0,1,1
+PARTS_REQ,1,21,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,22,Drawer Front Slab,1,199.0,377.8,1,0,0,1,1
+PARTS_REQ,1,23,Drawer Front Slab,1,158.8,377.8,1,0,0,1,1
+PARTS_REQ,1,24,Drawer Front Slab,1,200.0,377.8,1,0,0,1,1
+PARTS_REQ,1,25,Drawer Front Slab,1,198.4,909.6,1,0,0,1,1
+PARTS_REQ,1,26,Drawer Front Slab,1,198.4,909.6,1,0,0,1,1
+PARTS_REQ,1,27,Drawer Front Slab,1,200.0,909.6,1,0,0,1,1
+PARTS_REQ,1,28,Drawer Front Slab,1,381.0,987.4,1,0,0,1,1
+PARTS_REQ,1,29,Drawer Front Slab,1,381.0,987.4,1,0,0,1,1
+PARTS_REQ,1,30,Sub Front,1,342.6,152.4,1,0,0,1,1
+PARTS_REQ,1,31,Sub Front,1,723.6,176.3,1,0,0,1,1
+PARTS_UDI,1,1,_Dev Sequence,Door Base Slab,(03-11) _Dev Sequence_Kitchen,WAWP5W0B,WAWP5X0B,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJV8XVF11,WAWP5W0B,WAWP5X0B,,,,,1,Kitchen,Base Sink 2 Doors 1 False Front,8,1,,,2,1,,13994
+PARTS_UDI,1,2,_Dev Sequence,Door Base Slab,(03-11) _Dev Sequence_Kitchen,WAWP620B,WAWP630B,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJYDTNF11,WAWP620B,WAWP630B,,,,,1,Kitchen,Base Sink 2 Doors 1 False Front,8,1,,,0,1,,13994
+PARTS_UDI,1,3,_Dev Sequence,Door Base Slab,(03-11) _Dev Sequence_Kitchen,WAWP3Q0B,WAWP3R0B,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQKXSY8F11,WAWP3Q0B,WAWP3R0B,,,,,1,Kitchen,Base Sink 1 Door 1 Drawer at bottom,19,1,,,2,1,,13994
+PARTS_UDI,1,4,_Dev Sequence,Door Base Slab,(03-11) _Dev Sequence_Kitchen,WAWOQQ0B,WAWOQR0B,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIH0IOF11,WAWOQQ0B,WAWOQR0B,,,,,1,Kitchen,Base 1 Door 1 Drawer,25,1,,,0,1,,13994
+PARTS_UDI,1,5,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOUW0L,WAWOUX0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJCPCGF21,WAWOUW0L,WAWOUX0L,,,,,1,Kitchen,Base 4 Drawer,20,1,,,0,1,,13994
+PARTS_UDI,1,6,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP7E0L,WAWP7F0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQKHIX6F21,WAWP7E0L,WAWP7F0L,,,,,1,Kitchen,Base 4 Drawer,7,1,,,0,1,,13994
+PARTS_UDI,1,7,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOV20L,WAWOV30L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJETVIF21,WAWOV20L,WAWOV30L,,,,,1,Kitchen,Base 4 Drawer,20,1,,,0,1,,13994
+PARTS_UDI,1,8,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOVE0L,WAWOVF0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJG3FTF21,WAWOVE0L,WAWOVF0L,,,,,1,Kitchen,Base 4 Drawer,20,1,,,0,1,,13994
+PARTS_UDI,1,9,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOV80L,WAWOV90L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQJFYEKF21,WAWOV80L,WAWOV90L,,,,,1,Kitchen,Base 4 Drawer,20,1,,,0,1,,13994
+PARTS_UDI,1,10,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP720L,WAWP730L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQKE9V2F21,WAWP720L,WAWP730L,,,,,1,Kitchen,Base 4 Drawer,7,1,,,0,1,,13994
+PARTS_UDI,1,11,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP680L,WAWP690L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQK2IDXF21,WAWP680L,WAWP690L,,,,,1,Kitchen,Base Sink 2 Doors 1 False Front,8,1,,,0,1,,13994
+PARTS_UDI,1,12,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOQW0L,WAWOQX0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIJ5ECF21,WAWOQW0L,WAWOQX0L,,,,,1,Kitchen,Base 1 Door 1 Drawer,25,1,,,0,1,,13994
+PARTS_UDI,1,13,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP7K0L,WAWP7L0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQKING8F21,WAWP7K0L,WAWP7L0L,,,,,1,Kitchen,Base 4 Drawer,7,1,,,0,1,,13994
+PARTS_UDI,1,14,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWPA80L,WAWPA90L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQLGGO4F21,WAWPA80L,WAWPA90L,,,,,1,Kitchen,Base 4 Drawer,9,1,,,0,1,,13994
+PARTS_UDI,1,15,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP780L,WAWP790L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQKFEE4F21,WAWP780L,WAWP790L,,,,,1,Kitchen,Base 4 Drawer,7,1,,,0,1,,13994
+PARTS_UDI,1,16,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOXW0L,WAWOXX0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQHXC4LF21,WAWOXW0L,WAWOXX0L,,,,,1,Kitchen,Base 4 Drawer,22,1,,,0,1,,13994
+PARTS_UDI,1,17,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOSE0L,WAWOSF0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIXEW0F21,WAWOSE0L,WAWOSF0L,,,,,1,Kitchen,Base 4 Drawer,24,1,,,0,1,,13994
+PARTS_UDI,1,18,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOS80L,WAWOS90L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIWACYF21,WAWOS80L,WAWOS90L,,,,,1,Kitchen,Base 4 Drawer,24,1,,,0,1,,13994
+PARTS_UDI,1,19,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOS20L,WAWOS30L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIU5TWF21,WAWOS20L,WAWOS30L,,,,,1,Kitchen,Base 4 Drawer,24,1,,,0,1,,13994
+PARTS_UDI,1,20,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOSK0L,WAWOSL0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQIYJF2F21,WAWOSK0L,WAWOSL0L,,,,,1,Kitchen,Base 4 Drawer,24,1,,,0,1,,13994
+PARTS_UDI,1,21,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWPA20L,WAWPA30L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQLFC52F21,WAWPA20L,WAWPA30L,,,,,1,Kitchen,Base 4 Drawer,9,1,,,0,1,,13994
+PARTS_UDI,1,22,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP9W0L,WAWP9X0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQLD7M0F21,WAWP9W0L,WAWP9X0L,,,,,1,Kitchen,Base 4 Drawer,9,1,,,0,1,,13994
+PARTS_UDI,1,23,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWP9Q0L,WAWP9R0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQLC32YF21,WAWP9Q0L,WAWP9R0L,,,,,1,Kitchen,Base 4 Drawer,9,1,,,0,1,,13994
+PARTS_UDI,1,24,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,W60B0HL8,W60B0HL9,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQL4FX0F21,W60B0HL8,W60B0HL9,,,,,1,Kitchen,Base Sink 1 Door 1 Drawer at bottom,19,1,,,0,1,,13994
+PARTS_UDI,1,25,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOY80L,WAWOY90L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQI0L6PF21,WAWOY80L,WAWOY90L,,,,,1,Kitchen,Base 4 Drawer,22,1,,,0,1,,13994
+PARTS_UDI,1,26,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOY20L,WAWOY30L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQHYGNNF21,WAWOY20L,WAWOY30L,,,,,1,Kitchen,Base 4 Drawer,22,1,,,0,1,,13994
+PARTS_UDI,1,27,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOYE0L,WAWOYF0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQI1PPRF21,WAWOYE0L,WAWOYF0L,,,,,1,Kitchen,Base 4 Drawer,22,1,,,0,1,,13994
+PARTS_UDI,1,28,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOWW0L,WAWOWX0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQHMFKZF21,WAWOWW0L,WAWOWX0L,,,,,1,Kitchen,Base 2 Drawer,23,1,,,0,1,,13994
+PARTS_UDI,1,29,_Dev Sequence,Drawer Front Slab,(03-11) _Dev Sequence_Kitchen,WAWOWQ0L,WAWOWR0L,,,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,EB - Wood Tape - Hickory - 1.5mm,,263BJQHLB1XF21,WAWOWQ0L,WAWOWR0L,,,,,1,Kitchen,Base 2 Drawer,23,1,,,0,1,,13994
+PARTS_UDI,1,30,_Dev Sequence,Sub Front,(03-11) _Dev Sequence_Kitchen,WAWP3E01,WAWP3F01,WAWP3E01,,,,EB - Wood Tape - Hickory - 1.5mm,,,263BJQKUKB9F1,WAWP3E01,WAWP3F01,WAWP3E01,,K,K,1,Kitchen,Base Sink 1 Door 1 Drawer at bottom,19,1,,,0,1,K,13994
+PARTS_UDI,1,31,_Dev Sequence,Sub Front,(03-11) _Dev Sequence_Kitchen,WAWP5K01,WAWP5L01,WAWP5K01,,,,EB - Wood Tape - Hickory - 1.5mm,,,263BJQJS0AWF1,WAWP5K01,WAWP5L01,WAWP5K01,,K,K,1,Kitchen,Base Sink 2 Doors 1 False Front,8,1,,,0,1,K,13994
+BOARDS,1,1,( 3_4 ) WT - Hickory - Rustic Calico,1,2447.9,1228.7,2000,3,0.00,0,,,1
+MATERIALS,1,1,( 3_4 ) WT - Hickory - Rustic Calico,,18.8,5,4.4,4.4,4.8,0.0,4.8,0.0,0.0,4.4,0.0,4,0,1,0,,1
+PATTERNS,1,1,1,0,1,1,4,,0,0
+CUTS,1,1,1,1,1,454.0,1,0,0,RIP
+CUTS,1,1,2,3,2,200.0,1,20,1,
+CUTS,1,1,3,4,2,198.4,1,17,1,
+CUTS,1,1,4,5,2,198.4,1,18,1,
+CUTS,1,1,5,6,2,158.8,1,19,1,
+CUTS,1,1,6,7,2,723.6,1,0,0,RIP
+CUTS,1,1,7,10,3,176.3,1,31,1,
+CUTS,1,1,8,11,3,152.4,1,0,0,RIP
+CUTS,1,1,9,12,4,342.6,1,30,1,
+CUTS,1,1,10,8,2,200.0,1,0,0,RIP
+CUTS,1,1,11,11,3,377.8,1,24,1,
+CUTS,1,1,12,9,2,562.0,1,0,0,RIP
+CUTS,1,1,13,12,3,377.8,1,3,1,
+CUTS,1,1,14,2,1,377.8,1,0,0,RIP
+CUTS,1,1,15,7,2,199.0,1,14,1,
+CUTS,1,1,16,8,2,199.0,1,21,1,
+CUTS,1,1,17,9,2,199.0,1,22,1,
+CUTS,1,1,18,10,2,158.8,1,23,1,
+CUTS,1,1,19,11,2,199.0,1,13,1,
+CUTS,1,1,20,12,2,199.0,1,6,1,
+CUTS,1,1,21,13,2,199.0,1,15,1,
+CUTS,1,1,22,14,2,158.8,1,10,1,
+CUTS,1,1,23,15,2,200.0,1,8,1,
+CUTS,1,1,24,16,2,198.4,1,9,1,
+CUTS,1,1,25,17,2,198.4,1,7,1,
+CUTS,1,1,26,18,2,158.8,1,5,1,
+PATTERNS,1,2,1,0,1,1,4,,0,0
+CUTS,1,2,1,1,1,987.4,1,0,0,RIP
+CUTS,1,2,2,2,2,381.0,1,28,1,
+CUTS,1,2,3,3,2,381.0,1,29,1,
+CUTS,1,2,4,4,2,603.3,1,0,0,RIP
+CUTS,1,2,5,10,3,379.4,1,1,1,
+CUTS,1,2,6,11,3,379.4,1,2,1,
+CUTS,1,2,7,5,2,158.8,1,0,0,RIP
+CUTS,1,2,8,12,3,762.0,1,11,1,
+CUTS,1,2,9,6,2,200.0,1,0,0,RIP
+CUTS,1,2,10,13,3,909.6,1,27,1,
+CUTS,1,2,11,7,2,198.4,1,0,0,RIP
+CUTS,1,2,12,14,3,909.6,1,25,1,
+CUTS,1,2,13,8,2,198.4,1,0,0,RIP
+CUTS,1,2,14,15,3,909.6,1,26,1,
+CUTS,1,2,15,9,2,158.8,1,0,0,RIP
+CUTS,1,2,16,16,3,909.6,1,16,1,
+PATTERNS,1,3,1,1,1,1,4,,0,0
+CUTS,1,3,1,1,1,200.0,1,0,0,RIP
+CUTS,1,3,2,3,2,452.4,1,12,1,
+CUTS,1,3,3,2,1,562.0,1,0,0,RIP
+CUTS,1,3,4,4,2,452.4,1,4,1,

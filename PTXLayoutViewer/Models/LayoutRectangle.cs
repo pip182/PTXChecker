@@ -7,6 +7,10 @@ public sealed class LayoutRectangle
     public double YMm { get; init; }
     public double WidthMm { get; init; }
     public double HeightMm { get; init; }
+    /// <summary>Debug-only reconstructed cut region envelope that the layout engine matched to this part.</summary>
+    public double RegionWidthMm { get; init; }
+    /// <summary>Debug-only reconstructed cut region envelope that the layout engine matched to this part.</summary>
+    public double RegionHeightMm { get; init; }
     public int PartIndex { get; init; }
     public string PartName { get; init; } = "";
 }

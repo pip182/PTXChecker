@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.IO;
+using Microsoft.VisualBasic.FileIO;
 using PTXLayoutViewer.Models;
 
 namespace PTXLayoutViewer;
@@ -7,41 +7,123 @@ namespace PTXLayoutViewer;
 /// <summary>Parses PTX CSV records into a <see cref="PtxDocument"/>.</summary>
 public static class PtxParser
 {
-    private static readonly char[] Comma = { ',' };
-
     public static PtxDocument Parse(string filePath)
     {
-        var lines = File.ReadAllLines(filePath);
+        PtxHeader? header = null;
+        var jobs = new List<PtxJob>();
         var boards = new List<PtxBoard>();
+        var materials = new List<PtxMaterial>();
         var parts = new List<PtxPart>();
+        var partInfos = new List<PtxPartInfo>();
+        var partUdis = new List<PtxPartUdi>();
+        var partDestinations = new List<PtxPartDestination>();
+        var notes = new List<PtxNote>();
+        var offcuts = new List<PtxOffcut>();
         var patterns = new List<PtxPattern>();
+        var patternUdis = new List<PtxPatternUdi>();
         var cuts = new List<PtxCut>();
+        var vectors = new List<PtxVector>();
 
-        foreach (var line in lines)
+        foreach (var tokens in ReadCsvRecords(filePath))
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
-            var tokens = line.Split(Comma, StringSplitOptions.None);
-            if (tokens.Length == 0) continue;
+            if (tokens.Length == 0)
+                continue;
 
-            var recordType = tokens[0].Trim().ToUpperInvariant();
-            if (recordType == "BOARDS" && TryParseBoard(tokens, out var b))
-                boards.Add(b);
-            else if (recordType == "PARTS_REQ" && TryParsePart(tokens, out var p))
-                parts.Add(p);
-            else if (recordType == "PATTERNS" && TryParsePattern(tokens, out var pat))
-                patterns.Add(pat);
-            else if (recordType == "CUTS" && TryParseCut(tokens, out var c))
-                cuts.Add(c);
+            switch (GetText(tokens, 0).ToUpperInvariant())
+            {
+                case "HEADER":
+                    if (TryParseHeader(tokens, out var parsedHeader))
+                        header = parsedHeader;
+                    break;
+                case "BOARDS":
+                    if (TryParseBoard(tokens, out var board))
+                        boards.Add(board);
+                    break;
+                case "JOBS":
+                    if (TryParseJob(tokens, out var job))
+                        jobs.Add(job);
+                    break;
+                case "MATERIALS":
+                    if (TryParseMaterial(tokens, out var material))
+                        materials.Add(material);
+                    break;
+                case "PARTS_REQ":
+                    if (TryParsePart(tokens, out var part))
+                        parts.Add(part);
+                    break;
+                case "PARTS_INF":
+                    if (TryParsePartInfo(tokens, out var partInfo))
+                        partInfos.Add(partInfo);
+                    break;
+                case "PARTS_UDI":
+                    if (TryParsePartUdi(tokens, out var udi))
+                        partUdis.Add(udi);
+                    break;
+                case "PARTS_DST":
+                    if (TryParsePartDestination(tokens, out var destination))
+                        partDestinations.Add(destination);
+                    break;
+                case "NOTES":
+                    if (TryParseNote(tokens, out var note))
+                        notes.Add(note);
+                    break;
+                case "OFFCUTS":
+                    if (TryParseOffcut(tokens, out var offcut))
+                        offcuts.Add(offcut);
+                    break;
+                case "PATTERNS":
+                    if (TryParsePattern(tokens, out var pattern))
+                        patterns.Add(pattern);
+                    break;
+                case "PTN_UDI":
+                    if (TryParsePatternUdi(tokens, out var patternUdi))
+                        patternUdis.Add(patternUdi);
+                    break;
+                case "CUTS":
+                    if (TryParseCut(tokens, out var cut))
+                        cuts.Add(cut);
+                    break;
+                case "VECTORS":
+                    if (TryParseVector(tokens, out var vector))
+                        vectors.Add(vector);
+                    break;
+            }
         }
 
         var doc = new PtxDocument
         {
+            Header = header,
+            Jobs = jobs,
             Boards = boards,
+            Materials = materials,
             Parts = parts,
+            PartInfos = partInfos,
+            PartUdis = partUdis,
+            PartDestinations = partDestinations,
+            Notes = notes,
+            Offcuts = offcuts,
             Patterns = patterns,
-            Cuts = cuts
+            PatternUdis = patternUdis,
+            Cuts = cuts,
+            Vectors = vectors
         };
+
         return NormalizeDocument(doc);
+    }
+
+    private static IEnumerable<string[]> ReadCsvRecords(string filePath)
+    {
+        using var parser = new TextFieldParser(filePath);
+        parser.SetDelimiters(",");
+        parser.HasFieldsEnclosedInQuotes = true;
+        parser.TrimWhiteSpace = false;
+
+        while (!parser.EndOfData)
+        {
+            var fields = parser.ReadFields();
+            if (fields is { Length: > 0 })
+                yield return fields;
+        }
     }
 
     /// <summary>Fills in generic BOARDS, PATTERNS, and synthetic CUTS when missing so layout can still be shown.</summary>
@@ -50,25 +132,20 @@ public static class PtxParser
         var boards = doc.Boards.ToList();
         var patterns = doc.Patterns.ToList();
         var cuts = doc.Cuts.ToList();
-        int jobIndex = doc.Parts.Count > 0 ? doc.Parts[0].JobIndex : 1;
+        var jobIndex = doc.Parts.Count > 0 ? doc.Parts[0].JobIndex : 1;
 
         if (doc.Parts.Count == 0)
             return doc;
 
         if (boards.Count == 0)
         {
-            double length = 2440;
-            double width = 1220;
-            if (doc.Parts.Count > 0)
-            {
-                length = Math.Max(length, doc.Parts.Sum(p => p.WidthMm));
-                width = Math.Max(width, doc.Parts.Max(p => p.HeightMm));
-            }
+            var length = Math.Max(2440, doc.Parts.Sum(p => p.WidthMm));
+            var width = Math.Max(1220, doc.Parts.Max(p => p.HeightMm));
             boards.Add(new PtxBoard
             {
                 JobIndex = jobIndex,
                 BrdIndex = 1,
-                MaterialCode = "(generic)",
+                Code = "(generic)",
                 LengthMm = length,
                 WidthMm = width
             });
@@ -80,149 +157,495 @@ public static class PtxParser
             {
                 JobIndex = jobIndex,
                 PtnIndex = 1,
-                BrdIndex = 1,
-                PatternName = "(generic)",
-                Margin1Mm = 0,
-                Margin2Mm = 0
+                BrdIndex = boards[0].BrdIndex,
+                Type = 0,
+                QtyRun = 1,
+                QtyCycles = 1,
+                MaxBook = 1,
+                Picture = "(generic)"
             });
         }
 
         if (cuts.Count == 0 && patterns.Count > 0)
         {
-            // Grain 2 = part rotated 90° on board: strip height = part Width, cross = part Height
-            double stripHeight = doc.Parts.Max(p => p.GrainDirection == 2 ? p.WidthMm : p.HeightMm);
+            var stripHeight = doc.Parts.Max(p => p.GrainDirection == 2 ? p.WidthMm : p.HeightMm);
             cuts.Add(new PtxCut
             {
                 JobIndex = jobIndex,
-                PtnIndex = 1,
+                PtnIndex = patterns[0].PtnIndex,
                 CutIndex = 1,
                 Sequence = 1,
                 Function = 1,
                 DimensionMm = stripHeight,
                 QtyRpt = 1,
-                PartIndex = 0,
-                QtyParts = 0,
+                PartIndexToken = "0",
                 Comment = "generic rip"
             });
-            int cutIndex = 2;
-            int sequence = 2;
+
+            var cutIndex = 2;
+            var sequence = 2;
             foreach (var part in doc.Parts.OrderBy(p => p.PartIndex))
             {
-                double crossMm = part.GrainDirection == 2 ? part.HeightMm : part.WidthMm;
+                var crossMm = part.GrainDirection == 2 ? part.HeightMm : part.WidthMm;
                 cuts.Add(new PtxCut
                 {
                     JobIndex = jobIndex,
-                    PtnIndex = 1,
+                    PtnIndex = patterns[0].PtnIndex,
                     CutIndex = cutIndex++,
                     Sequence = sequence++,
                     Function = 2,
                     DimensionMm = crossMm,
                     QtyRpt = 1,
                     PartIndex = part.PartIndex,
-                    QtyParts = 1,
-                    Comment = ""
+                    PartIndexToken = part.PartIndex.ToString(CultureInfo.InvariantCulture),
+                    QtyParts = 1
                 });
             }
         }
 
-        if (boards.Count == doc.Boards.Count && patterns.Count == doc.Patterns.Count && cuts.Count == doc.Cuts.Count)
+        if (boards.Count == doc.Boards.Count &&
+            patterns.Count == doc.Patterns.Count &&
+            cuts.Count == doc.Cuts.Count)
+        {
             return doc;
+        }
 
         return new PtxDocument
         {
+            Header = doc.Header,
+            Jobs = doc.Jobs,
             Boards = boards,
+            Materials = doc.Materials,
             Parts = doc.Parts,
+            PartInfos = doc.PartInfos,
+            PartUdis = doc.PartUdis,
+            PartDestinations = doc.PartDestinations,
+            Notes = doc.Notes,
+            Offcuts = doc.Offcuts,
             Patterns = patterns,
-            Cuts = cuts
+            PatternUdis = doc.PatternUdis,
+            Cuts = cuts,
+            Vectors = doc.Vectors
         };
     }
 
-    // BOARDS per spec §3: Job_ID, BRD_INDEX, Material_Code, ?, Length, Width, ...
-    private static bool TryParseBoard(string[] t, out PtxBoard board)
+    private static bool TryParseHeader(string[] t, out PtxHeader header)
     {
-        board = null!;
-        if (t.Length < 7) return false;
-        if (!int.TryParse(t[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var job)) return false;
-        if (!int.TryParse(t[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var brd)) return false;
-        if (!double.TryParse(t[5].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var length)) return false;
-        if (!double.TryParse(t[6].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var width)) return false;
-        board = new PtxBoard { JobIndex = job, BrdIndex = brd, MaterialCode = t[3].Trim(), LengthMm = length, WidthMm = width };
+        header = new PtxHeader
+        {
+            Version = GetText(t, 1),
+            Title = GetText(t, 2),
+            Units = GetInt(t, 3),
+            Origin = GetInt(t, 4),
+            TrimType = GetInt(t, 5)
+        };
+        return !string.IsNullOrWhiteSpace(header.Version);
+    }
+
+    private static bool TryParseJob(string[] t, out PtxJob job)
+    {
+        job = null!;
+        if (!TryGetInt(t, 1, out var jobIndex))
+            return false;
+
+        job = new PtxJob
+        {
+            JobIndex = jobIndex,
+            Name = GetText(t, 2),
+            Description = GetText(t, 3),
+            OrderDate = GetText(t, 4),
+            CutDate = GetText(t, 5),
+            Customer = GetText(t, 6),
+            Status = GetInt(t, 7),
+            OptimizerParameter = GetText(t, 8),
+            SawParameter = GetText(t, 9),
+            CutTimeSeconds = GetDouble(t, 10),
+            WastePercent = GetDouble(t, 11)
+        };
         return true;
     }
 
-    // PARTS_REQ: Job_ID, Part_ID, Part_Seq/Name?, Material_ID?, Width, Height, Qty?, ..., Grain? (index 10: 0=no grain, 1=along length, 2=along width)
+    private static bool TryParsePartUdi(string[] t, out PtxPartUdi udi)
+    {
+        udi = null!;
+        if (!TryGetInt(t, 1, out var job) || !TryGetInt(t, 2, out var partId))
+            return false;
+
+        var values = new List<string>();
+        for (var i = 3; i < t.Length && values.Count < PtxPartUdi.FieldLabels.Count; i++)
+            values.Add(GetText(t, i));
+
+        udi = new PtxPartUdi
+        {
+            JobIndex = job,
+            PartIndex = partId,
+            Values = values
+        };
+        return true;
+    }
+
+    private static bool TryParseBoard(string[] t, out PtxBoard board)
+    {
+        board = null!;
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var brd) ||
+            !TryGetDouble(t, 5, out var length) ||
+            !TryGetDouble(t, 6, out var width))
+        {
+            return false;
+        }
+
+        board = new PtxBoard
+        {
+            JobIndex = job,
+            BrdIndex = brd,
+            Code = GetText(t, 3),
+            MatIndex = GetInt(t, 4),
+            LengthMm = length,
+            WidthMm = width,
+            QtyStock = GetInt(t, 7),
+            QtyUsed = GetInt(t, 8),
+            Cost = GetDouble(t, 9),
+            Information = GetText(t, 11),
+            Grain = GetInt(t, 13),
+            Type = GetInt(t, 14),
+            CostMethod = GetInt(t, 18)
+        };
+        return true;
+    }
+
+    private static bool TryParseMaterial(string[] t, out PtxMaterial material)
+    {
+        material = null!;
+        if (!TryGetInt(t, 1, out var job) || !TryGetInt(t, 2, out var matIndex))
+            return false;
+
+        material = new PtxMaterial
+        {
+            JobIndex = job,
+            MatIndex = matIndex,
+            Code = GetText(t, 3),
+            Description = GetText(t, 4),
+            ThicknessMm = GetDouble(t, 5),
+            Book = GetInt(t, 6),
+            KerfRipMm = GetDouble(t, 7),
+            KerfCrossMm = GetDouble(t, 8),
+            TrimFixedRipMm = GetDouble(t, 9),
+            TrimVariableRipMm = GetDouble(t, 10),
+            TrimFixedCrossMm = GetDouble(t, 11),
+            TrimVariableCrossMm = GetDouble(t, 12),
+            TrimHeadMm = GetDouble(t, 13),
+            TrimFixedRecutMm = GetDouble(t, 14),
+            TrimVariableRecutMm = GetDouble(t, 15),
+            Rule1 = GetInt(t, 16),
+            Rule2 = GetInt(t, 17),
+            Rule3 = GetInt(t, 18),
+            Rule4 = GetInt(t, 19),
+            MaterialParameter = GetText(t, 20),
+            Grain = GetInt(t, 21),
+            Picture = GetText(t, 22),
+            Density = GetDouble(t, 23)
+        };
+        return true;
+    }
+
     private static bool TryParsePart(string[] t, out PtxPart part)
     {
         part = null!;
-        if (t.Length < 8) return false;
-        if (!int.TryParse(t[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var job)) return false;
-        if (!int.TryParse(t[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var partId)) return false;
-        if (!double.TryParse(t[5].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var w)) return false;
-        if (!double.TryParse(t[6].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var h)) return false;
-        int qty = 0;
-        if (t.Length > 7) int.TryParse(t[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out qty);
-        int grain = 0;
-        if (t.Length > 10) int.TryParse(t[10].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out grain);
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var partId) ||
+            !TryGetDouble(t, 5, out var length) ||
+            !TryGetDouble(t, 6, out var width))
+        {
+            return false;
+        }
+
         part = new PtxPart
         {
             JobIndex = job,
             PartIndex = partId,
-            PartName = t.Length > 3 ? t[3].Trim().Trim('"') : "",
-            WidthMm = w,
-            HeightMm = h,
-            QtyReq = qty,
-            GrainDirection = grain
+            Code = GetText(t, 3),
+            MatIndex = GetInt(t, 4),
+            WidthMm = length,
+            HeightMm = width,
+            QtyReq = GetInt(t, 7),
+            QtyOver = GetInt(t, 8),
+            QtyUnder = GetInt(t, 9),
+            GrainDirection = GetInt(t, 10),
+            QtyProduced = GetInt(t, 11),
+            UnderProducedError = GetInt(t, 12),
+            UnderProducedAllowed = GetInt(t, 13),
+            UnderProducedPlusPart = GetInt(t, 14)
         };
         return true;
     }
 
-    // PATTERNS: Job, PTN_INDEX, BRD_INDEX, ..., "Name", Margin1, Margin2, ...
-    private static bool TryParsePattern(string[] t, out PtxPattern pattern)
+    private static bool TryParsePartInfo(string[] t, out PtxPartInfo partInfo)
     {
-        pattern = null!;
-        if (t.Length < 10) return false;
-        if (!int.TryParse(t[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var job)) return false;
-        if (!int.TryParse(t[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ptn)) return false;
-        if (!int.TryParse(t[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var brd)) return false;
-        var name = t.Length > 8 ? t[8].Trim().Trim('"') : "";
-        if (!double.TryParse(t[9].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var m1)) return false;
-        if (!double.TryParse(t[10].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var m2)) return false;
-        pattern = new PtxPattern { JobIndex = job, PtnIndex = ptn, BrdIndex = brd, PatternName = name, Margin1Mm = m1, Margin2Mm = m2 };
+        partInfo = null!;
+        if (!TryGetInt(t, 1, out var job) || !TryGetInt(t, 2, out var partIndex))
+            return false;
+
+        partInfo = new PtxPartInfo
+        {
+            JobIndex = job,
+            PartIndex = partIndex,
+            Description = GetText(t, 3),
+            LabelQuantity = GetInt(t, 4),
+            FinishedLengthMm = GetDouble(t, 5),
+            FinishedWidthMm = GetDouble(t, 6),
+            Order = GetText(t, 7),
+            Edge1 = GetText(t, 8),
+            Edge2 = GetText(t, 9),
+            Edge3 = GetText(t, 10),
+            Edge4 = GetText(t, 11),
+            FaceLaminate = GetText(t, 16),
+            BackLaminate = GetText(t, 17),
+            Core = GetText(t, 18),
+            Drawing = GetText(t, 19),
+            Product = GetText(t, 20),
+            ProductInfo = GetText(t, 21),
+            ProductWidthMm = GetDouble(t, 22),
+            ProductHeightMm = GetDouble(t, 23),
+            ProductDepthMm = GetDouble(t, 24),
+            ProductNumber = GetText(t, 25),
+            Room = GetText(t, 26),
+            Barcode1 = GetText(t, 27),
+            Barcode2 = GetText(t, 28),
+            Colour = GetText(t, 29),
+            SecondCutLengthMm = GetDouble(t, 30),
+            SecondCutWidthMm = GetDouble(t, 31)
+        };
         return true;
     }
 
-    // CUTS per spec §4: JOB_INDEX, PTN_INDEX, CUT_INDEX, SEQUENCE, FUNCTION, DIMENSION, QTY_RPT, PART_INDEX, QTY_PARTS, COMMENT
+    private static bool TryParseOffcut(string[] t, out PtxOffcut offcut)
+    {
+        offcut = null!;
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var offcutIndex) ||
+            !TryGetDouble(t, 5, out var length) ||
+            !TryGetDouble(t, 6, out var width))
+        {
+            return false;
+        }
+
+        offcut = new PtxOffcut
+        {
+            JobIndex = job,
+            OffcutIndex = offcutIndex,
+            Code = GetText(t, 3),
+            MatIndex = GetInt(t, 4),
+            LengthMm = length,
+            WidthMm = width,
+            Quantity = GetInt(t, 7),
+            Grain = GetInt(t, 8),
+            Cost = GetDouble(t, 9),
+            Type = GetInt(t, 10),
+            ExtraInformation = GetText(t, 11),
+            CostMethod = GetInt(t, 12)
+        };
+        return true;
+    }
+
+    private static bool TryParsePartDestination(string[] t, out PtxPartDestination destination)
+    {
+        destination = null!;
+        if (!TryGetInt(t, 1, out var job) || !TryGetInt(t, 2, out var partIndex))
+            return false;
+
+        destination = new PtxPartDestination
+        {
+            JobIndex = job,
+            PartIndex = partIndex,
+            PartsPerStackLength = GetInt(t, 3),
+            PartsPerStackWidth = GetInt(t, 4),
+            PartLayoutOrientation = GetInt(t, 5),
+            StackHeightQuantity = GetInt(t, 6),
+            StackHeightDimensionMm = GetDouble(t, 7),
+            Station = GetText(t, 8),
+            QuantityStacks = GetInt(t, 9),
+            BottomType = GetText(t, 10),
+            BottomDescription = GetText(t, 11),
+            BottomMaterial = GetText(t, 12),
+            BottomLengthMm = GetDouble(t, 13),
+            BottomWidthMm = GetDouble(t, 14),
+            BottomThicknessMm = GetDouble(t, 15),
+            OverhangLengthMm = GetDouble(t, 16),
+            OverhangWidthMm = GetDouble(t, 17),
+            TopType = GetText(t, 20),
+            TopDescription = GetText(t, 21),
+            TopMaterial = GetText(t, 22),
+            SupportType = GetText(t, 28),
+            SupportDescription = GetText(t, 29),
+            SupportMaterial = GetText(t, 30),
+            Station2 = GetText(t, 36)
+        };
+        return true;
+    }
+
+    private static bool TryParsePattern(string[] t, out PtxPattern pattern)
+    {
+        pattern = null!;
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var ptn) ||
+            !TryGetInt(t, 3, out var brd))
+        {
+            return false;
+        }
+
+        pattern = new PtxPattern
+        {
+            JobIndex = job,
+            PtnIndex = ptn,
+            BrdIndex = brd,
+            Type = GetInt(t, 4),
+            QtyRun = GetInt(t, 5),
+            QtyCycles = GetInt(t, 6),
+            MaxBook = GetInt(t, 7),
+            Picture = GetText(t, 8),
+            CycleTimeSeconds = GetDouble(t, 9),
+            TotalTimeSeconds = GetDouble(t, 10),
+            PatternProcessing = GetText(t, 11)
+        };
+        return true;
+    }
+
+    private static bool TryParsePatternUdi(string[] t, out PtxPatternUdi patternUdi)
+    {
+        patternUdi = null!;
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var patternIndex) ||
+            !TryGetInt(t, 3, out var boardIndex) ||
+            !TryGetInt(t, 4, out var stripIndex))
+        {
+            return false;
+        }
+
+        var values = new List<string>();
+        for (var i = 5; i < t.Length; i++)
+            values.Add(GetText(t, i));
+
+        patternUdi = new PtxPatternUdi
+        {
+            JobIndex = job,
+            PtnIndex = patternIndex,
+            BrdIndex = boardIndex,
+            StripIndex = stripIndex,
+            Values = values
+        };
+        return true;
+    }
+
     private static bool TryParseCut(string[] t, out PtxCut cut)
     {
         cut = null!;
-        if (t.Length < 10) return false;
-        if (!int.TryParse(t[1].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var job)) return false;
-        if (!int.TryParse(t[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var ptn)) return false;
-        if (!int.TryParse(t[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var cutIx)) return false;
-        if (!int.TryParse(t[4].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var seq)) return false;
-        if (!int.TryParse(t[5].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var fn)) return false;
-        if (!double.TryParse(t[6].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out var dim)) return false;
-        if (!int.TryParse(t[7].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var qtyRpt)) return false;
-        var partIndexStr = t[8].Trim();
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var ptn) ||
+            !TryGetInt(t, 3, out var cutIndex) ||
+            !TryGetInt(t, 4, out var sequence) ||
+            !TryGetInt(t, 5, out var function) ||
+            !TryGetDouble(t, 6, out var dimension) ||
+            !TryGetInt(t, 7, out var qtyRpt) ||
+            !TryGetInt(t, 9, out var qtyParts))
+        {
+            return false;
+        }
+
+        var token = GetText(t, 8);
+        var offcutIndex = 0;
+        var isOffcut = token.StartsWith("X", StringComparison.OrdinalIgnoreCase) &&
+                       int.TryParse(token.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out offcutIndex);
+
         var partIndex = 0;
-        if (partIndexStr.StartsWith("X", StringComparison.OrdinalIgnoreCase))
-            int.TryParse(partIndexStr.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out partIndex);
-        else
-            int.TryParse(partIndexStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out partIndex);
-        if (!int.TryParse(t[9].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var qtyParts)) return false;
+        if (!isOffcut)
+            int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out partIndex);
+
         cut = new PtxCut
         {
             JobIndex = job,
             PtnIndex = ptn,
-            CutIndex = cutIx,
-            Sequence = seq,
-            Function = fn,
-            DimensionMm = dim,
+            CutIndex = cutIndex,
+            Sequence = sequence,
+            Function = function,
+            DimensionMm = dimension,
             QtyRpt = qtyRpt,
             PartIndex = partIndex,
+            PartIndexToken = token,
+            IsOffcut = isOffcut,
+            OffcutIndex = isOffcut ? offcutIndex : null,
             QtyParts = qtyParts,
-            Comment = t.Length > 10 ? t[10].Trim().Trim('"') : ""
+            Comment = GetText(t, 10)
         };
         return true;
+    }
+
+    private static bool TryParseVector(string[] t, out PtxVector vector)
+    {
+        vector = null!;
+        if (!TryGetInt(t, 1, out var job) ||
+            !TryGetInt(t, 2, out var ptn) ||
+            !TryGetInt(t, 3, out var cutIndex) ||
+            !TryGetDouble(t, 4, out var xStart) ||
+            !TryGetDouble(t, 5, out var yStart) ||
+            !TryGetDouble(t, 6, out var xEnd) ||
+            !TryGetDouble(t, 7, out var yEnd))
+        {
+            return false;
+        }
+
+        vector = new PtxVector
+        {
+            JobIndex = job,
+            PtnIndex = ptn,
+            CutIndex = cutIndex,
+            XStartMm = xStart,
+            YStartMm = yStart,
+            XEndMm = xEnd,
+            YEndMm = yEnd
+        };
+        return true;
+    }
+
+    private static bool TryParseNote(string[] t, out PtxNote note)
+    {
+        note = null!;
+        if (!TryGetInt(t, 1, out var jobIndex) || !TryGetInt(t, 2, out var noteIndex))
+            return false;
+
+        note = new PtxNote
+        {
+            JobIndex = jobIndex,
+            NoteIndex = noteIndex,
+            Text = GetText(t, 3)
+        };
+        return true;
+    }
+
+    private static string GetText(string[] tokens, int index) =>
+        index < tokens.Length ? tokens[index].Trim().Trim('"') : "";
+
+    private static int GetInt(string[] tokens, int index)
+    {
+        return TryGetInt(tokens, index, out var value) ? value : 0;
+    }
+
+    private static bool TryGetInt(string[] tokens, int index, out int value)
+    {
+        value = 0;
+        return index < tokens.Length &&
+               int.TryParse(tokens[index].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static double GetDouble(string[] tokens, int index)
+    {
+        return TryGetDouble(tokens, index, out var value) ? value : 0;
+    }
+
+    private static bool TryGetDouble(string[] tokens, int index, out double value)
+    {
+        value = 0;
+        return index < tokens.Length &&
+               double.TryParse(tokens[index].Trim(), NumberStyles.Number, CultureInfo.InvariantCulture, out value);
     }
 }

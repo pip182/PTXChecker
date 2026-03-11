@@ -3,37 +3,39 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PTXLayoutViewer"
         mc:Ignorable="d"
-        Title="PTX Layout Viewer" Height="900" Width="1200"
-        MinHeight="900" MinWidth="1200">
+        Title="PTX Layout Viewer" Height="980" Width="1320"
+        MinHeight="980" MinWidth="1320"
+        Icon="pack://application:,,,/PTXLayoutViewer;component/icons/appicon_white.ico">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="120" MinHeight="80"/>
+            <RowDefinition Height="280" MinHeight="220"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#1e293b" Padding="12,10">
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="OpenButton" Content="Open PTX…" Padding="14,8" Margin="0,0,10,0"
+                <Button x:Name="OpenButton" Content="Open PTX..." Padding="14,8" Margin="0,0,10,0"
                         Click="OpenButton_Click" Cursor="Hand"/>
                 <TextBlock x:Name="FilePathText" VerticalAlignment="Center" Foreground="#94a3b8"
-                           Text="No file loaded" TextTrimming="CharacterEllipsis" MaxWidth="450"/>
+                           Text="No file loaded" TextTrimming="CharacterEllipsis" MaxWidth="760"/>
             </StackPanel>
         </Border>
 
         <Border Grid.Row="1" Background="#334155" Padding="10,6">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Pattern:" VerticalAlignment="Center" Foreground="#e2e8f0" Margin="0,0,8,0"/>
-                <ComboBox x:Name="PatternCombo" MinWidth="180" SelectionChanged="PatternCombo_SelectionChanged"/>
-                <TextBlock x:Name="BoardSizeText" VerticalAlignment="Center" Foreground="#94a3b8" Margin="16,0,0,0"/>
-            </StackPanel>
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <TextBlock Text="Pattern:" VerticalAlignment="Center" Foreground="#e2e8f0" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="PatternCombo" MinWidth="220" SelectionChanged="PatternCombo_SelectionChanged"/>
+                    <TextBlock x:Name="BoardSizeText" VerticalAlignment="Center" Foreground="#94a3b8" Margin="16,0,0,0"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
-        <Border Grid.Row="2" Background="#0f172a" Margin="0,0,0,0">
+        <Border Grid.Row="2" Background="#0f172a">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220" MinWidth="180"/>
@@ -59,27 +61,87 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="3" Background="#334155" BorderBrush="#475569" BorderThickness="0,1,0,0" Padding="12,10" MinHeight="80">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid x:Name="PartDetailsPanel" Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                </Grid>
-            </Grid>
-        </Border>
+        <TabControl Grid.Row="3" Background="#334155" BorderBrush="#475569" BorderThickness="0,1,0,0">
+            <TabItem Header="Part Details">
+                <Border Background="#334155" Padding="12,10">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Padding="0,4,0,0">
+                        <Grid x:Name="PartDetailsPanel" MinWidth="800">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="220"/>
+                                <ColumnDefinition Width="*" MinWidth="220"/>
+                                <ColumnDefinition Width="*" MinWidth="220"/>
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+            <TabItem Header="Debug">
+                <DataGrid x:Name="DebugGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          RowBackground="#0f172a"
+                          AlternatingRowBackground="#111c31"
+                          Background="#0f172a"
+                          Foreground="#e2e8f0"
+                          BorderThickness="0">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Copy Debug"
+                                      Click="CopyDebugButton_Click"/>
+                            <MenuItem Header="Export Debug CSV"
+                                      Click="ExportDebugButton_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Pattern" Binding="{Binding PatternIndex}" Width="70"/>
+                        <DataGridTextColumn Header="Part" Binding="{Binding PartIndex}" Width="70"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding PartName}" Width="160"/>
+                        <DataGridTextColumn Header="Grain" Binding="{Binding GrainDirection}" Width="60"/>
+                        <DataGridTextColumn Header="Part W" Binding="{Binding PartWidthMm, StringFormat=F1}" Width="80"/>
+                        <DataGridTextColumn Header="Part H" Binding="{Binding PartHeightMm, StringFormat=F1}" Width="80"/>
+                        <DataGridTextColumn Header="Layout W" Binding="{Binding LayoutWidthMm, StringFormat=F1}" Width="85"/>
+                        <DataGridTextColumn Header="Layout H" Binding="{Binding LayoutHeightMm, StringFormat=F1}" Width="85"/>
+                        <DataGridTextColumn Header="Region W" Binding="{Binding RegionWidthMm, StringFormat=F1}" Width="85"/>
+                        <DataGridTextColumn Header="Region H" Binding="{Binding RegionHeightMm, StringFormat=F1}" Width="85"/>
+                        <DataGridTextColumn Header="X" Binding="{Binding XMm, StringFormat=F1}" Width="70"/>
+                        <DataGridTextColumn Header="Y" Binding="{Binding YMm, StringFormat=F1}" Width="70"/>
+                        <DataGridCheckBoxColumn Header="Fits Region" Binding="{Binding FitsRegion}" Width="90"/>
+                        <DataGridCheckBoxColumn Header="Fits Board" Binding="{Binding FitsBoard}" Width="85"/>
+                        <DataGridTextColumn Header="Warning" Binding="{Binding Warning}" Width="220"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Metadata">
+                <DataGrid x:Name="MetadataGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          RowBackground="#0f172a"
+                          AlternatingRowBackground="#111c31"
+                          Background="#0f172a"
+                          Foreground="#e2e8f0"
+                          BorderThickness="0">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Copy Metadata"
+                                      Click="CopyMetadataButton_Click"/>
+                            <MenuItem Header="Export Metadata CSV"
+                                      Click="ExportMetadataButton_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Table" Binding="{Binding TableName}" Width="100"/>
+                        <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="120"/>
+                        <DataGridTextColumn Header="Record" Binding="{Binding RecordKey}" Width="130"/>
+                        <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="260"/>
+                        <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
 
         <Border Grid.Row="4" Background="#1e293b" Padding="10,6">
             <TextBlock x:Name="StatusText" Foreground="#64748b" FontSize="12"/>
