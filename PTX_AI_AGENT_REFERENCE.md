@@ -3,6 +3,8 @@
 Derived from:
 - `PTX_FORMAT.txt` from `Pattern Exchange File - Specification v1.21` (Magi-Cut, dated March 14, 2025)
 - `PTX_Agent_Spec.md`
+- `PTX_FORMAT_HEXAGON.txt` (`Holzma` / Hexagon online help, `PATTERN EXCHANGE FILE SPECIFICATION V1.02.4`, dated November 4, 1999)
+- `Sequence Example 1of2.png` and `Sequence Example 2of2.png`
 
 This document is intended for AI agents, parsers, importers, exporters, viewers, and automation systems that need a practical description of the PTX file format and how it works operationally.
 
@@ -61,6 +63,7 @@ All normal CSV rules apply:
 - comma-delimited fields
 - quotes may be used around text
 - text containing commas must be quoted
+- some legacy importers replace embedded commas in text with spaces on import
 - leading spaces are ignored
 - trailing commas are optional
 
@@ -95,6 +98,25 @@ All index numbers are integer values starting at 1 and incrementing consecutivel
 - `CUT_INDEX` must restart at 1 for each pattern and increment consecutively
 
 All part, board, pattern, and cut records must carry the appropriate `JOB_INDEX`.
+
+## 2.7 Version and implementation compatibility
+
+This reference primarily reflects the later `v1.21` PTX structure, but the Hexagon/Holzma `v1.02.4` text shows an older subset that still matters in practice.
+
+Compatibility observations:
+
+- older exporters may emit fewer fields than the later spec for the same record type
+- parsers should accept short records and treat later fields as optional extensions
+- older `JOBS` records may stop at `STATUS`
+- older `PARTS_REQ` records may stop at `QTY_PROD`
+- the older Hexagon text documents 12 record types and does not mention `PTN_UDI`; treat `PTN_UDI` as a later extension, not a universal requirement
+- older controllers may use additional nonstandard `STATUS` error codes beyond `0`, `1`, and `2`
+
+Recommended parser behavior:
+
+- identify records by token first
+- consume as many known fields as are present
+- do not reject a file just because later-spec tail fields are absent
 
 ---
 
@@ -183,6 +205,11 @@ Fields:
 - `0 = trim waste piece first`
 - `1 = trim fixed trim first`
 
+Historical note:
+
+- the older Hexagon text shows an ASCII example beginning with `PROPERTIES` instead of `HEADER`
+- treat this as a legacy documentation/example inconsistency or possible historical alias, not as evidence of a different field layout
+
 ## 5.2 JOBS
 
 Structure:
@@ -192,6 +219,7 @@ Structure:
 Important fields:
 
 - `STATUS`: `0 = not optimised`, `1 = optimised`, `2 = optimise failed`
+- some older controllers may use additional nonstandard error codes
 - `OPT_PARAM`: optimizer parameter filename
 - `SAW_PARAM`: saw parameter filename
 - `CUT_TIME`: total cutting time in seconds
@@ -265,6 +293,40 @@ Typical uses:
 - arbitrary downstream integration fields
 
 Agents should treat this record as flexible and implementation-specific.
+
+PARTS_UDI field configuration from Microvellum:
+[
+    "Project Name",
+    "Part Description",
+    "Work Order Name",
+    "Part File Name",
+    "Part Face 6 File Name",
+    "Part Machining Picture",
+    "Part Face 6 Machining Picture",
+    "Edgeband Left",
+    "Edgeband Right",
+    "Edgeband Top",
+    "Edgeband Bottom",
+    "Job Number",
+    "Part LinkID",
+    "File Name",
+    "Part Face 6 File Name",
+    "Part Machining Picture",
+    "Part Face 6 Machining Picture",
+    "Part Comments",
+    "Part Comments",
+    "Part Total Qty",
+    "Room Name",
+    "Product Name",
+    "Product Item Number",
+    "Product Qty",
+    "Part Material Code",
+    "Part Material Code",
+    "Part RunField",
+    "Part Grain Flag",
+    "Part Comments",
+    "Project Number",
+]
 
 ## 5.6 PARTS_DST
 
@@ -464,6 +526,8 @@ Critical operational behavior:
 - `SEQUENCE` is optional; if absent, the saw or post-processor determines order
 - sequence numbers advance by repeat count
 - the origin for `CUTS` is assumed to be top-left
+- the Hexagon sequence examples show multiple `CUTS` records intentionally sharing the same `SEQUENCE` value, so `SEQUENCE` is a grouping/order hint, not a unique row identifier
+- comments such as `RIP`, `XCUT`, `HEAD`, and "same sequence as record ..." in example output are explanatory text only and should not be treated as normative machine data
 
 Special cases:
 
@@ -565,6 +629,7 @@ Agents should:
 - parse PTX as CSV, not naive comma-split text if quoted fields are possible
 - treat each record type as a relational table
 - allow optional records and optional trailing fields
+- allow legacy short-form records for older exporters
 - tolerate absent `JOBS`
 - tolerate absent `PARTS_INF`, `PARTS_UDI`, `PARTS_DST`, `NOTES`, `PTN_UDI`, `VECTORS`
 - preserve `COMMENT` fields but not depend on them for semantics

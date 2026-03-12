@@ -250,7 +250,7 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="1,1,1,0"
                                 CornerRadius="6,6,0,0"
-                                Margin="0,0,4,0">
+                                Margin="2,4,2,0">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"
                                               ContentSource="Header"
@@ -457,8 +457,8 @@
 
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Width" Value="12"/>
-            <Setter Property="Height" Value="12"/>
+            <Setter Property="Width" Value="6"/>
+            <!-- <Setter Property="Height" Value="12"/> -->
             <Setter Property="Template" Value="{StaticResource ThinVerticalScrollBarTemplate}"/>
             <Style.Triggers>
                 <Trigger Property="Orientation" Value="Horizontal">

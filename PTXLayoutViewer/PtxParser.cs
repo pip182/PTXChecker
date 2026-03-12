@@ -32,6 +32,7 @@ public static class PtxParser
             switch (GetText(tokens, 0).ToUpperInvariant())
             {
                 case "HEADER":
+                case "PROPERTIES":
                     if (TryParseHeader(tokens, out var parsedHeader))
                         header = parsedHeader;
                     break;
@@ -108,7 +109,7 @@ public static class PtxParser
             Vectors = vectors
         };
 
-        return NormalizeDocument(doc);
+        return NormalizeDocument(ConvertDocumentUnits(doc));
     }
 
     private static IEnumerable<string[]> ReadCsvRecords(string filePath)
@@ -226,6 +227,63 @@ public static class PtxParser
             PatternUdis = doc.PatternUdis,
             Cuts = cuts,
             Vectors = doc.Vectors
+        };
+    }
+
+    private static PtxDocument ConvertDocumentUnits(PtxDocument doc)
+    {
+        if (doc.Header?.Units != 1)
+            return doc;
+
+        return new PtxDocument
+        {
+            Header = doc.Header,
+            Jobs = doc.Jobs,
+            Boards = doc.Boards.Select(board => board.withDimensions(
+                lengthMm: UnitHelpers.InchToMm(board.LengthMm),
+                widthMm: UnitHelpers.InchToMm(board.WidthMm))).ToList(),
+            Materials = doc.Materials.Select(material => material.withDimensions(
+                thicknessMm: UnitHelpers.InchToMm(material.ThicknessMm),
+                kerfRipMm: UnitHelpers.InchToMm(material.KerfRipMm),
+                kerfCrossMm: UnitHelpers.InchToMm(material.KerfCrossMm),
+                trimFixedRipMm: UnitHelpers.InchToMm(material.TrimFixedRipMm),
+                trimVariableRipMm: UnitHelpers.InchToMm(material.TrimVariableRipMm),
+                trimFixedCrossMm: UnitHelpers.InchToMm(material.TrimFixedCrossMm),
+                trimVariableCrossMm: UnitHelpers.InchToMm(material.TrimVariableCrossMm),
+                trimHeadMm: UnitHelpers.InchToMm(material.TrimHeadMm),
+                trimFixedRecutMm: UnitHelpers.InchToMm(material.TrimFixedRecutMm),
+                trimVariableRecutMm: UnitHelpers.InchToMm(material.TrimVariableRecutMm))).ToList(),
+            Parts = doc.Parts.Select(part => part.withDimensions(
+                widthMm: UnitHelpers.InchToMm(part.WidthMm),
+                heightMm: UnitHelpers.InchToMm(part.HeightMm))).ToList(),
+            PartInfos = doc.PartInfos.Select(info => info.withDimensions(
+                finishedLengthMm: UnitHelpers.InchToMm(info.FinishedLengthMm),
+                finishedWidthMm: UnitHelpers.InchToMm(info.FinishedWidthMm),
+                productWidthMm: UnitHelpers.InchToMm(info.ProductWidthMm),
+                productHeightMm: UnitHelpers.InchToMm(info.ProductHeightMm),
+                productDepthMm: UnitHelpers.InchToMm(info.ProductDepthMm),
+                secondCutLengthMm: UnitHelpers.InchToMm(info.SecondCutLengthMm),
+                secondCutWidthMm: UnitHelpers.InchToMm(info.SecondCutWidthMm))).ToList(),
+            PartUdis = doc.PartUdis,
+            PartDestinations = doc.PartDestinations.Select(destination => destination.withDimensions(
+                stackHeightDimensionMm: UnitHelpers.InchToMm(destination.StackHeightDimensionMm),
+                bottomLengthMm: UnitHelpers.InchToMm(destination.BottomLengthMm),
+                bottomWidthMm: UnitHelpers.InchToMm(destination.BottomWidthMm),
+                bottomThicknessMm: UnitHelpers.InchToMm(destination.BottomThicknessMm),
+                overhangLengthMm: UnitHelpers.InchToMm(destination.OverhangLengthMm),
+                overhangWidthMm: UnitHelpers.InchToMm(destination.OverhangWidthMm))).ToList(),
+            Notes = doc.Notes,
+            Offcuts = doc.Offcuts.Select(offcut => offcut.withDimensions(
+                lengthMm: UnitHelpers.InchToMm(offcut.LengthMm),
+                widthMm: UnitHelpers.InchToMm(offcut.WidthMm))).ToList(),
+            Patterns = doc.Patterns,
+            PatternUdis = doc.PatternUdis,
+            Cuts = doc.Cuts.Select(cut => cut.withDimension(UnitHelpers.InchToMm(cut.DimensionMm))).ToList(),
+            Vectors = doc.Vectors.Select(vector => vector.withCoordinates(
+                xStartMm: UnitHelpers.InchToMm(vector.XStartMm),
+                yStartMm: UnitHelpers.InchToMm(vector.YStartMm),
+                xEndMm: UnitHelpers.InchToMm(vector.XEndMm),
+                yEndMm: UnitHelpers.InchToMm(vector.YEndMm))).ToList()
         };
     }
 
@@ -543,14 +601,16 @@ public static class PtxParser
         if (!TryGetInt(t, 1, out var job) ||
             !TryGetInt(t, 2, out var ptn) ||
             !TryGetInt(t, 3, out var cutIndex) ||
-            !TryGetInt(t, 4, out var sequence) ||
             !TryGetInt(t, 5, out var function) ||
             !TryGetDouble(t, 6, out var dimension) ||
-            !TryGetInt(t, 7, out var qtyRpt) ||
-            !TryGetInt(t, 9, out var qtyParts))
+            !TryGetInt(t, 7, out var qtyRpt))
         {
             return false;
         }
+
+        var sequence = GetInt(t, 4);
+        if (sequence <= 0)
+            sequence = cutIndex;
 
         var token = GetText(t, 8);
         var offcutIndex = 0;
@@ -574,11 +634,215 @@ public static class PtxParser
             PartIndexToken = token,
             IsOffcut = isOffcut,
             OffcutIndex = isOffcut ? offcutIndex : null,
-            QtyParts = qtyParts,
+            QtyParts = GetInt(t, 9),
             Comment = GetText(t, 10)
         };
         return true;
     }
+
+    private static PtxBoard withDimensions(this PtxBoard board, double lengthMm, double widthMm) =>
+        new()
+        {
+            JobIndex = board.JobIndex,
+            BrdIndex = board.BrdIndex,
+            Code = board.Code,
+            MatIndex = board.MatIndex,
+            LengthMm = lengthMm,
+            WidthMm = widthMm,
+            QtyStock = board.QtyStock,
+            QtyUsed = board.QtyUsed,
+            Cost = board.Cost,
+            Information = board.Information,
+            Grain = board.Grain,
+            Type = board.Type,
+            CostMethod = board.CostMethod
+        };
+
+    private static PtxMaterial withDimensions(
+        this PtxMaterial material,
+        double thicknessMm,
+        double kerfRipMm,
+        double kerfCrossMm,
+        double trimFixedRipMm,
+        double trimVariableRipMm,
+        double trimFixedCrossMm,
+        double trimVariableCrossMm,
+        double trimHeadMm,
+        double trimFixedRecutMm,
+        double trimVariableRecutMm) =>
+        new()
+        {
+            JobIndex = material.JobIndex,
+            MatIndex = material.MatIndex,
+            Code = material.Code,
+            Description = material.Description,
+            ThicknessMm = thicknessMm,
+            Book = material.Book,
+            KerfRipMm = kerfRipMm,
+            KerfCrossMm = kerfCrossMm,
+            TrimFixedRipMm = trimFixedRipMm,
+            TrimVariableRipMm = trimVariableRipMm,
+            TrimFixedCrossMm = trimFixedCrossMm,
+            TrimVariableCrossMm = trimVariableCrossMm,
+            TrimHeadMm = trimHeadMm,
+            TrimFixedRecutMm = trimFixedRecutMm,
+            TrimVariableRecutMm = trimVariableRecutMm,
+            Rule1 = material.Rule1,
+            Rule2 = material.Rule2,
+            Rule3 = material.Rule3,
+            Rule4 = material.Rule4,
+            MaterialParameter = material.MaterialParameter,
+            Grain = material.Grain,
+            Picture = material.Picture,
+            Density = material.Density
+        };
+
+    private static PtxPart withDimensions(this PtxPart part, double widthMm, double heightMm) =>
+        new()
+        {
+            JobIndex = part.JobIndex,
+            PartIndex = part.PartIndex,
+            Code = part.Code,
+            MatIndex = part.MatIndex,
+            WidthMm = widthMm,
+            HeightMm = heightMm,
+            QtyReq = part.QtyReq,
+            QtyOver = part.QtyOver,
+            QtyUnder = part.QtyUnder,
+            GrainDirection = part.GrainDirection,
+            QtyProduced = part.QtyProduced,
+            UnderProducedError = part.UnderProducedError,
+            UnderProducedAllowed = part.UnderProducedAllowed,
+            UnderProducedPlusPart = part.UnderProducedPlusPart
+        };
+
+    private static PtxPartInfo withDimensions(
+        this PtxPartInfo info,
+        double finishedLengthMm,
+        double finishedWidthMm,
+        double productWidthMm,
+        double productHeightMm,
+        double productDepthMm,
+        double secondCutLengthMm,
+        double secondCutWidthMm) =>
+        new()
+        {
+            JobIndex = info.JobIndex,
+            PartIndex = info.PartIndex,
+            Description = info.Description,
+            LabelQuantity = info.LabelQuantity,
+            FinishedLengthMm = finishedLengthMm,
+            FinishedWidthMm = finishedWidthMm,
+            Order = info.Order,
+            Edge1 = info.Edge1,
+            Edge2 = info.Edge2,
+            Edge3 = info.Edge3,
+            Edge4 = info.Edge4,
+            FaceLaminate = info.FaceLaminate,
+            BackLaminate = info.BackLaminate,
+            Core = info.Core,
+            Drawing = info.Drawing,
+            Product = info.Product,
+            ProductInfo = info.ProductInfo,
+            ProductWidthMm = productWidthMm,
+            ProductHeightMm = productHeightMm,
+            ProductDepthMm = productDepthMm,
+            ProductNumber = info.ProductNumber,
+            Room = info.Room,
+            Barcode1 = info.Barcode1,
+            Barcode2 = info.Barcode2,
+            Colour = info.Colour,
+            SecondCutLengthMm = secondCutLengthMm,
+            SecondCutWidthMm = secondCutWidthMm
+        };
+
+    private static PtxPartDestination withDimensions(
+        this PtxPartDestination destination,
+        double stackHeightDimensionMm,
+        double bottomLengthMm,
+        double bottomWidthMm,
+        double bottomThicknessMm,
+        double overhangLengthMm,
+        double overhangWidthMm) =>
+        new()
+        {
+            JobIndex = destination.JobIndex,
+            PartIndex = destination.PartIndex,
+            PartsPerStackLength = destination.PartsPerStackLength,
+            PartsPerStackWidth = destination.PartsPerStackWidth,
+            PartLayoutOrientation = destination.PartLayoutOrientation,
+            StackHeightQuantity = destination.StackHeightQuantity,
+            StackHeightDimensionMm = stackHeightDimensionMm,
+            Station = destination.Station,
+            QuantityStacks = destination.QuantityStacks,
+            BottomType = destination.BottomType,
+            BottomDescription = destination.BottomDescription,
+            BottomMaterial = destination.BottomMaterial,
+            BottomLengthMm = bottomLengthMm,
+            BottomWidthMm = bottomWidthMm,
+            BottomThicknessMm = bottomThicknessMm,
+            OverhangLengthMm = overhangLengthMm,
+            OverhangWidthMm = overhangWidthMm,
+            TopType = destination.TopType,
+            TopDescription = destination.TopDescription,
+            TopMaterial = destination.TopMaterial,
+            SupportType = destination.SupportType,
+            SupportDescription = destination.SupportDescription,
+            SupportMaterial = destination.SupportMaterial,
+            Station2 = destination.Station2
+        };
+
+    private static PtxOffcut withDimensions(this PtxOffcut offcut, double lengthMm, double widthMm) =>
+        new()
+        {
+            JobIndex = offcut.JobIndex,
+            OffcutIndex = offcut.OffcutIndex,
+            Code = offcut.Code,
+            MatIndex = offcut.MatIndex,
+            LengthMm = lengthMm,
+            WidthMm = widthMm,
+            Quantity = offcut.Quantity,
+            Grain = offcut.Grain,
+            Cost = offcut.Cost,
+            Type = offcut.Type,
+            ExtraInformation = offcut.ExtraInformation,
+            CostMethod = offcut.CostMethod
+        };
+
+    private static PtxCut withDimension(this PtxCut cut, double dimensionMm) =>
+        new()
+        {
+            JobIndex = cut.JobIndex,
+            PtnIndex = cut.PtnIndex,
+            CutIndex = cut.CutIndex,
+            Sequence = cut.Sequence,
+            Function = cut.Function,
+            DimensionMm = dimensionMm,
+            QtyRpt = cut.QtyRpt,
+            PartIndex = cut.PartIndex,
+            PartIndexToken = cut.PartIndexToken,
+            IsOffcut = cut.IsOffcut,
+            OffcutIndex = cut.OffcutIndex,
+            QtyParts = cut.QtyParts,
+            Comment = cut.Comment
+        };
+
+    private static PtxVector withCoordinates(
+        this PtxVector vector,
+        double xStartMm,
+        double yStartMm,
+        double xEndMm,
+        double yEndMm) =>
+        new()
+        {
+            JobIndex = vector.JobIndex,
+            PtnIndex = vector.PtnIndex,
+            CutIndex = vector.CutIndex,
+            XStartMm = xStartMm,
+            YStartMm = yStartMm,
+            XEndMm = xEndMm,
+            YEndMm = yEndMm
+        };
 
     private static bool TryParseVector(string[] t, out PtxVector vector)
     {

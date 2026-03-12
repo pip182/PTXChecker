@@ -5,6 +5,8 @@ public static class UnitHelpers
 {
     public const double MmPerInch = 25.4;
 
+    public static double InchToMm(double inches) => inches * MmPerInch;
+
     public static double MmToInch(double mm) => mm / MmPerInch;
 
     /// <summary>Formats length as "X.XX mm (Y.YY in)".</summary>

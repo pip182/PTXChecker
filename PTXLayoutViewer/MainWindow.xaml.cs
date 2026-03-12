@@ -18,12 +18,16 @@ public partial class MainWindow : Window
     private IReadOnlyList<LayoutRectangle>? _currentRectangles;
     private IReadOnlyList<DebugLayoutRow> _currentDebugRows = Array.Empty<DebugLayoutRow>();
     private IReadOnlyList<MetadataViewRow> _currentMetadataRows = Array.Empty<MetadataViewRow>();
+    private IReadOnlyList<(string Label, string Value)> _currentPartDetailsPairs = Array.Empty<(string, string)>();
     private Border? _highlightOverlay;
 
     private const double ScalePxPerMm = 0.35;
-    private const double HighlightInset = 4;
-    private const double HighlightStrokeThickness = 2;
-    private static readonly Color HighlightStrokeColor = Color.FromRgb(255, 255, 255);
+    private const double HighlightInset = 0;
+    private const double HighlightStrokeThickness = 4;
+    private const double HighlightCornerRadius = 0;
+    private const int ProductItemNumberUdiIndex = 22; // PARTS_UDI "Product Item Number"
+    private const byte HighlightStrokeOpacity = 120;
+    private static readonly Color HighlightStrokeColor = Color.FromArgb(HighlightStrokeOpacity, 255, 255, 255);
     private static readonly Color[] PartColors =
     {
         Color.FromRgb(59, 130, 246),
@@ -147,11 +151,40 @@ public partial class MainWindow : Window
         {
             ClearPartHighlight();
             UpdatePartDetailsPanel(null);
+            SyncGridSelectionToPart(-1);
             return;
         }
 
         HighlightPartAtIndex(index);
         UpdatePartDetailsPanel(index);
+        SyncGridSelectionToPart(index);
+    }
+
+    /// <summary>Updates Debug and Metadata grid selection so the row for the selected part is highlighted.</summary>
+    private void SyncGridSelectionToPart(int layoutIndex)
+    {
+        DebugGrid.SelectionChanged -= DebugGrid_SelectionChanged;
+        MetadataGrid.SelectionChanged -= MetadataGrid_SelectionChanged;
+        try
+        {
+            if (layoutIndex >= 0 && _currentRectangles != null && layoutIndex < _currentRectangles.Count)
+            {
+                DebugGrid.SelectedIndex = layoutIndex;
+                var partIndex = _currentRectangles[layoutIndex].PartIndex;
+                var metadataRow = _currentMetadataRows.FirstOrDefault(r => r.PartIndex == partIndex);
+                MetadataGrid.SelectedItem = metadataRow;
+            }
+            else
+            {
+                DebugGrid.SelectedIndex = -1;
+                MetadataGrid.SelectedIndex = -1;
+            }
+        }
+        finally
+        {
+            DebugGrid.SelectionChanged += DebugGrid_SelectionChanged;
+            MetadataGrid.SelectionChanged += MetadataGrid_SelectionChanged;
+        }
     }
 
     private void HighlightPartAtIndex(int index)
@@ -175,7 +208,8 @@ public partial class MainWindow : Window
             Height = height - HighlightInset * 2,
             Background = Brushes.Transparent,
             BorderBrush = new SolidColorBrush(HighlightStrokeColor),
-            BorderThickness = new Thickness(HighlightStrokeThickness)
+            BorderThickness = new Thickness(HighlightStrokeThickness),
+            CornerRadius = new CornerRadius(HighlightCornerRadius)
         };
 
         Canvas.SetLeft(_highlightOverlay, left + HighlightInset);
@@ -199,6 +233,7 @@ public partial class MainWindow : Window
 
         if (index == null || _currentRectangles == null || _document == null || index.Value >= _currentRectangles.Count)
         {
+            _currentPartDetailsPairs = Array.Empty<(string, string)>();
             PartDetailsPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var message = new TextBlock
             {
@@ -282,7 +317,15 @@ public partial class MainWindow : Window
 
         const int columns = 3;
         const double labelMaxWidth = 160;
-        var visiblePairs = pairs.Where(p => !string.IsNullOrWhiteSpace(p.Value)).ToList();
+        var seenLabels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var visiblePairs = new List<(string Label, string Value)>();
+        foreach (var p in pairs)
+        {
+            if (string.IsNullOrWhiteSpace(p.Value)) continue;
+            if (!seenLabels.Add(p.Label)) continue;
+            visiblePairs.Add(p);
+        }
+        _currentPartDetailsPairs = visiblePairs;
         var rowCount = (visiblePairs.Count + columns - 1) / columns;
         for (var row = 0; row < rowCount; row++)
             PartDetailsPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -385,17 +428,39 @@ public partial class MainWindow : Window
             Canvas.SetTop(partRect, rectangle.YMm * ScalePxPerMm);
             LayoutCanvas.Children.Add(partRect);
 
+            var partNameText = string.IsNullOrEmpty(rectangle.PartName) ? $"P{rectangle.PartIndex}" : rectangle.PartName;
+            var productItemNumber = _document?.GetUdiForPart(rectangle.PartIndex)?.GetValue(ProductItemNumberUdiIndex) ?? "";
+
             var label = new TextBlock
             {
-                Text = string.IsNullOrEmpty(rectangle.PartName) ? $"P{rectangle.PartIndex}" : rectangle.PartName,
+                Text = partNameText,
                 Foreground = Brushes.White,
                 FontSize = 10,
                 FontWeight = FontWeights.SemiBold,
                 IsHitTestVisible = false
             };
-            Canvas.SetLeft(label, rectangle.XMm * ScalePxPerMm + 4);
-            Canvas.SetTop(label, rectangle.YMm * ScalePxPerMm + 4);
-            LayoutCanvas.Children.Add(label);
+            var labelStack = new StackPanel
+            {
+                Orientation = Orientation.Vertical,
+                IsHitTestVisible = false
+            };
+            labelStack.Children.Add(label);
+            if (!string.IsNullOrEmpty(productItemNumber))
+            {
+                var itemLine = new TextBlock
+                {
+                    Text = $"Item #{productItemNumber}",
+                    Foreground = Brushes.White,
+                    FontSize = 9,
+                    Opacity = 0.9,
+                    IsHitTestVisible = false
+                };
+                labelStack.Children.Add(itemLine);
+            }
+
+            Canvas.SetLeft(labelStack, rectangle.XMm * ScalePxPerMm + 8);
+            Canvas.SetTop(labelStack, rectangle.YMm * ScalePxPerMm + 4);
+            LayoutCanvas.Children.Add(labelStack);
         }
     }
 
@@ -540,7 +605,8 @@ public partial class MainWindow : Window
                         $"Finished={partInfo.FinishedLengthMm:F1}x{partInfo.FinishedWidthMm:F1}",
                         $"Drawing={partInfo.Drawing}",
                         $"Colour={partInfo.Colour}",
-                        $"Barcodes={JoinFields(partInfo.Barcode1, partInfo.Barcode2)}")
+                        $"Barcodes={JoinFields(partInfo.Barcode1, partInfo.Barcode2)}"),
+                    PartIndex = partIndex
                 });
             }
 
@@ -554,7 +620,8 @@ public partial class MainWindow : Window
                     Scope = scope,
                     RecordKey = part.PartName,
                     Summary = nonEmptyValues.Count == 0 ? "(empty)" : string.Join(" | ", nonEmptyValues.Take(3)),
-                    Details = nonEmptyValues.Count <= 3 ? string.Empty : $"{nonEmptyValues.Count} non-empty value(s)"
+                    Details = nonEmptyValues.Count <= 3 ? string.Empty : $"{nonEmptyValues.Count} non-empty value(s)",
+                    PartIndex = partIndex
                 });
             }
 
@@ -570,7 +637,8 @@ public partial class MainWindow : Window
                     Details = JoinFields(
                         $"Stacks={destination.QuantityStacks}",
                         $"Layout={destination.PartsPerStackLength}x{destination.PartsPerStackWidth}",
-                        $"Orientation={(destination.PartLayoutOrientation == 1 ? "Lengthways" : "Widthways")}")
+                        $"Orientation={(destination.PartLayoutOrientation == 1 ? "Lengthways" : "Widthways")}"),
+                    PartIndex = partIndex
                 });
             }
         }
@@ -606,6 +674,73 @@ public partial class MainWindow : Window
         MetadataGrid.ItemsSource = rows;
     }
 
+    private void SyncSelectionToPartHighlight(int layoutIndex)
+    {
+        PartsList.SelectionChanged -= PartsList_SelectionChanged;
+        try
+        {
+            PartsList.SelectedIndex = layoutIndex;
+            HighlightPartAtIndex(layoutIndex);
+            UpdatePartDetailsPanel(layoutIndex);
+        }
+        finally
+        {
+            PartsList.SelectionChanged += PartsList_SelectionChanged;
+        }
+    }
+
+    private void ClearSelectionAndHighlight()
+    {
+        PartsList.SelectionChanged -= PartsList_SelectionChanged;
+        try
+        {
+            PartsList.SelectedIndex = -1;
+            ClearPartHighlight();
+            UpdatePartDetailsPanel(null);
+        }
+        finally
+        {
+            PartsList.SelectionChanged += PartsList_SelectionChanged;
+        }
+    }
+
+    private void DebugGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var idx = DebugGrid.SelectedIndex;
+        if (idx >= 0 && _currentRectangles != null && idx < _currentRectangles.Count)
+        {
+            if (PartsList.SelectedIndex != idx)
+                SyncSelectionToPartHighlight(idx);
+        }
+        else if (PartsList.SelectedIndex != -1)
+        {
+            ClearSelectionAndHighlight();
+        }
+    }
+
+    private void MetadataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MetadataGrid.SelectedItem is not MetadataViewRow row || !row.PartIndex.HasValue || _currentRectangles == null)
+        {
+            if (PartsList.SelectedIndex != -1)
+                ClearSelectionAndHighlight();
+            return;
+        }
+        var layoutIndex = -1;
+        for (var i = 0; i < _currentRectangles.Count; i++)
+        {
+            if (_currentRectangles[i].PartIndex == row.PartIndex.Value)
+            {
+                layoutIndex = i;
+                break;
+            }
+        }
+        if (layoutIndex >= 0 && PartsList.SelectedIndex != layoutIndex)
+            SyncSelectionToPartHighlight(layoutIndex);
+        else if (layoutIndex < 0 && PartsList.SelectedIndex != -1)
+            ClearSelectionAndHighlight();
+    }
+
     private void CopyDebugButton_Click(object sender, RoutedEventArgs e)
     {
         if (_currentDebugRows.Count == 0)
@@ -638,6 +773,23 @@ public partial class MainWindow : Window
             return;
 
         ExportCsv(BuildMetadataCsv(_currentMetadataRows), "metadata");
+    }
+
+    private void CopyPartDetailsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentPartDetailsPairs.Count == 0)
+            return;
+
+        Clipboard.SetText(BuildPartDetailsCsv(_currentPartDetailsPairs));
+        StatusText.Text = $"Copied {_currentPartDetailsPairs.Count} part detail(s) to the clipboard.";
+    }
+
+    private void ExportPartDetailsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentPartDetailsPairs.Count == 0)
+            return;
+
+        ExportCsv(BuildPartDetailsCsv(_currentPartDetailsPairs), "part_details");
     }
 
     private void ExportCsv(string content, string suffix)
@@ -692,6 +844,15 @@ public partial class MainWindow : Window
         return builder.ToString();
     }
 
+    private static string BuildPartDetailsCsv(IEnumerable<(string Label, string Value)> pairs)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("Label,Value");
+        foreach (var (label, value) in pairs)
+            builder.AppendLine($"{Csv(label)},{Csv(value)}");
+        return builder.ToString();
+    }
+
     private static string Csv(string value)
     {
         var text = value ?? string.Empty;
@@ -703,8 +864,9 @@ public partial class MainWindow : Window
 
     private static string FormatJobStatus(int status) => status switch
     {
+        0 => "Not optimized",
         1 => "Optimized",
         2 => "Optimize failed",
-        _ => "Not optimized"
+        _ => $"Status {status}"
     };
 }

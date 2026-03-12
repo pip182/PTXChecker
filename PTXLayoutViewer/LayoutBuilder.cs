@@ -126,9 +126,9 @@ public static class LayoutBuilder
         if (cuts.Count == 0)
             return Array.Empty<LayoutRectangle>();
 
-        var phaseRegions = new Dictionary<int, Queue<WorkRegion>>
+        var phaseRegions = new Dictionary<int, List<WorkRegion>>
         {
-            [GetPhaseKey(cuts[0].Function)] = new Queue<WorkRegion>(new[]
+            [GetPhaseKey(cuts[0].Function)] = new List<WorkRegion>
             {
                 new WorkRegion
                 {
@@ -137,7 +137,7 @@ public static class LayoutBuilder
                     WidthMm = board.LengthMm,
                     HeightMm = board.WidthMm
                 }
-            })
+            }
         };
 
         var result = new List<LayoutRectangle>();
@@ -147,10 +147,14 @@ public static class LayoutBuilder
                 continue;
 
             var phase = GetPhaseKey(cut.Function);
-            if (!phaseRegions.TryGetValue(phase, out var queue) || queue.Count == 0)
+            if (!phaseRegions.TryGetValue(phase, out var regions) || regions.Count == 0)
                 continue;
 
-            var region = queue.Peek();
+            var regionIndex = FindSequentialRegionIndex(doc, pattern, cut, regions);
+            if (regionIndex < 0)
+                continue;
+
+            var region = regions[regionIndex];
             if (!TrySplitSequentialRegion(region, cut.Function, cut.DimensionMm, pattern?.Type ?? 0, out var falling, out var retained))
                 continue;
 
@@ -160,25 +164,25 @@ public static class LayoutBuilder
                 var produced = ChoosePartSide(part, falling, retained);
                 var continuing = ReferenceEquals(produced, falling) ? retained : falling;
 
-                ApplyContinuingRegion(queue, region, continuing);
+                ApplyContinuingRegion(regions, regionIndex, continuing);
                 if (produced.WidthMm > Epsilon && produced.HeightMm > Epsilon)
                     AddPartRectangle(doc, cut, produced, result);
                 continue;
             }
 
-            ApplyContinuingRegion(queue, region, retained);
+            ApplyContinuingRegion(regions, regionIndex, retained);
 
             if (falling.WidthMm <= Epsilon || falling.HeightMm <= Epsilon)
                 continue;
 
             var nextPhase = phase + 1;
-            if (!phaseRegions.TryGetValue(nextPhase, out var nextQueue))
+            if (!phaseRegions.TryGetValue(nextPhase, out var nextRegions))
             {
-                nextQueue = new Queue<WorkRegion>();
-                phaseRegions[nextPhase] = nextQueue;
+                nextRegions = new List<WorkRegion>();
+                phaseRegions[nextPhase] = nextRegions;
             }
 
-            nextQueue.Enqueue(falling);
+            nextRegions.Add(falling);
         }
 
         return result;
@@ -484,14 +488,58 @@ public static class LayoutBuilder
         return true;
     }
 
-    private static void ApplyContinuingRegion(Queue<WorkRegion> queue, WorkRegion current, WorkRegion continuing)
+    private static int FindSequentialRegionIndex(
+        PtxDocument doc,
+        PtxPattern? pattern,
+        PtxCut cut,
+        IReadOnlyList<WorkRegion> regions)
+    {
+        var bestIndex = -1;
+        var bestScore = double.MaxValue;
+        var part = cut.PartIndex > 0 ? doc.GetPart(cut.PartIndex) : null;
+
+        for (var i = 0; i < regions.Count; i++)
+        {
+            if (!TrySplitSequentialRegion(regions[i], cut.Function, cut.DimensionMm, pattern?.Type ?? 0, out var falling, out var retained))
+                continue;
+
+            var score = ScoreSequentialRegion(part, cut, falling, retained);
+            if (score < bestScore)
+            {
+                bestScore = score;
+                bestIndex = i;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    private static double ScoreSequentialRegion(PtxPart? part, PtxCut cut, WorkRegion falling, WorkRegion retained)
+    {
+        if (part == null)
+            return Math.Abs(falling.WidthMm - cut.DimensionMm) + Math.Abs(falling.HeightMm - cut.DimensionMm);
+
+        var fallingFits = RegionCanContainPart(falling, part);
+        var retainedFits = RegionCanContainPart(retained, part);
+        if (fallingFits && !retainedFits)
+            return ScorePartRegion(part, falling);
+        if (retainedFits && !fallingFits)
+            return ScorePartRegion(part, retained);
+        if (fallingFits && retainedFits)
+            return Math.Min(ScorePartRegion(part, falling), ScorePartRegion(part, retained));
+
+        return 1_000_000 + Math.Min(ScorePartRegion(part, falling), ScorePartRegion(part, retained));
+    }
+
+    private static void ApplyContinuingRegion(IList<WorkRegion> regions, int regionIndex, WorkRegion continuing)
     {
         if (continuing.WidthMm <= Epsilon || continuing.HeightMm <= Epsilon)
         {
-            queue.Dequeue();
+            regions.RemoveAt(regionIndex);
             return;
         }
 
+        var current = regions[regionIndex];
         current.XMm = continuing.XMm;
         current.YMm = continuing.YMm;
         current.WidthMm = continuing.WidthMm;
